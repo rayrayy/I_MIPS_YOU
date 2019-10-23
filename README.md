@@ -2,8 +2,3 @@
 2nd Year EIE Computer Architecture Coursework.
 
 Hi!
-
-
-
-
-Hello World
