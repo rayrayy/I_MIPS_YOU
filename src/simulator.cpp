@@ -20,20 +20,30 @@ int main(int argc, char *argv[]){
     }
 
 
+
     // binStream.seek(seek_end);
     // sizeBin=binStream.tell();
 
-    // std::vector<uint32_t> imem;
-    // imem.resize(0x1000000);
-    //
-    // std::vector<uint32_t> dmem;
-    // dmem.resize(0x4000000);
+    //Creating array and offset for instruction memory
+    <uint32_t> imem.[0x1000000] = {0};
+    uint32_t IMEM_OFFSET = 0x10000000;
+
+    //Creating array and offset for data memory
+    <uint32_t> dmem.[0x4000000] = {0};
+    uint32_t DMEM_OFFSET = 0x20000000;
+
+    //Initializing all registers at 0x00000000
+    uint32_t registers[32]={0};
+
+    //Initializing pc at IMEM_OFFSET
+    uint32_t pc=IMEM_OFFSET;
+
 
     // binStream.read(&tmp[0], sizeBin);
 
-    uint32_t IMEM_OFFSET = 0x1000000;
-    uint32_t registers[32]={0};
-    uint32_t pc=IMEM_OFFSET;
+
+
+
 
     while(1){
       uint32_t instruction;
