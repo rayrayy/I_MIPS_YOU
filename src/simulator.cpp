@@ -2,12 +2,15 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+//using namespace std;
+
+#define IMEM_OFFSET 0x100000
+#define DMEM_OFFSET 0x20000000
 
 int main(int argc, char *argv[]){
 
+    (void)argc; //to stop the warning of not using this argument
     std::string binName = argv[1];
-
-
 
     //Initializing array and offset for instruction memory
     // uint32_t imem[0x1000000] = {0};
@@ -25,29 +28,33 @@ int main(int argc, char *argv[]){
 
 
     //Opening the binary file
-    std::ifstream binStream;
-    binStream.open(binName.c_str(), std::ios::binary);
+    std::ifstream binStream(binName.c_str(), std::ios::in | std::ios::binary | std::ios::ate); //opens binary file for read with get pointer at the end
+
+    std::streampos binStream_size;
+    char *memBlock;
 
     if (binStream.is_open()){
-      std::cerr << "Binary opened successfully." << std::endl;
-      std::string line;
-      while (getline(binStream, line)) {
-          printf("%s", line.c_str());
-      }
-      binStream.close();
+    binStream_size = binStream.tellg();
+    memBlock = new char[binStream_size];
+    binStream.seekg (0, std::ios::beg);
+    binStream.read (memBlock, binStream_size);
+    binStream.close();
     }
-
     else{
-      std::cerr << "Error" << std::endl;
+      std::cerr << "Unable to open file" << std::endl;
       return(-1);
     }
 
-    //Simulator starts to run
-    while(1){
-      uint32_t instruction;
-      std::cerr << "Hello World" << std::endl;
-      return(0);
-    }
+    std::cerr << memBlock[34] << std::endl;
+
+
+
+    // //Simulator starts to run
+    // while(1){
+    //   uint32_t instruction;
+    //   std::cerr << "Hello World" << std::endl;
+    //   return(0);
+    // }
 
     return(0);
 
