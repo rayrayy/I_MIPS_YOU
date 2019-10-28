@@ -3,9 +3,10 @@
 #include <iostream>
 #include <vector>
 //using namespace std;
-
-#define ADDR_INSTR_OFFSET 0x100000
+#define ADDR_INSTR_OFFSET 0x10000000
 #define ADDR_DATA_OFFSET 0x20000000
+
+
 
 int main(int argc, char *argv[]){
 
@@ -32,9 +33,6 @@ int main(int argc, char *argv[]){
 
     std::vector<uint32_t> instrMem;
     std::vector<uint32_t> dataMem;
-    
-
-
 
     // //Simulator starts to run
     // while(1){
