@@ -4,7 +4,11 @@
 #include <vector>
 
 #define ADDR_INSTR_OFFSET 0x10000000
+#define ADDR_INSTR_LENGTH 0x1000000
+
 #define ADDR_DATA_OFFSET 0x20000000
+#define ADDR_DATA_LENGTH 0x4000000
+
 
 
 int main(int argc, char *argv[]){
