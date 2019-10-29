@@ -63,7 +63,7 @@ bool add(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVER
   }
 }
 
-void add(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
+void addu(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs + rt;
 }
 
@@ -133,6 +133,18 @@ void sra(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //need to chec
   }
 }
 
-//sub
+bool sub(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
+  bool overflow = 0;
+  rd = signed(rs) - signed(rt);
+  if (rd < rs || rd < rt){
+    overflow = 1;
+    return overflow;
+  }
+  else{
+    return overflow;
+  }
+}
 
-//subu
+void subu(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
+  rd = rs - rt;
+}
