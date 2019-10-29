@@ -5,7 +5,12 @@ using namespace std;
 
 int main(){
 
-  uint32_t x = 0xFFFFFFFF;
+  uint32_t x = 0XF0000000;
+
+
+  // long long y = (long long) x;
+  //
+  // cout << y;
 //Decoder values
   // uint32_t r = 0x00;
   // uint32_t j = 0x02;
@@ -36,15 +41,15 @@ int main(){
   //
   // short function = inst & 0b111111; //extracting function code
   // cout <<function;
-  uint32_t m = x >> 1;
-  cout << x << endl;
-  cout << m;
-  // if (x <= INT_MAX){
-  //     cout << static_cast<int>(x);
-  // }
-  //
-  // if (x >= INT_MIN){
-  //     cout << static_cast<int>(x - INT_MIN) + INT_MIN;
-  // }
+  // uint32_t m = x >> 1;
+  // cout << x << endl;
+  // cout << m;
+  if (x <= INT_MAX){
+      cout << static_cast<int>(x);
+  }
+
+  if (x >= INT_MIN){
+      cout << static_cast<int>(x - INT_MIN) + INT_MIN;
+  }
 
 }

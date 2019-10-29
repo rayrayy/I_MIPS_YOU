@@ -28,7 +28,7 @@ int signed(uint32_t val){
   }
 }
 
-void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc){
+void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint32_t& hi, uint32_t& lo){
 
   short rs = inst >> 21; // extracting register source
   rs = rs & 0b11111;
@@ -39,13 +39,15 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc){
   short rd = ins >> 11; //extracting register destination
   rd = rd & 0b11111;
 
-  short shift = ins >> 6; //extracting shift amount
-  shift = shift & 0b11111;
+  short shamt = ins >> 6; //extracting shift amount
+  shamt = shamt & 0b11111;
 
   short function = ins & 0b111111; //extracting function code
 
   if (function == 0b100000){
-    add(reg[rs], reg[rt], reg[rd]);
+    if(add(reg[rs], reg[rt], reg[rd])){
+      std::cerr << "Overflow" << std::endl;
+    }
   }
   else if (function == 0b100001){
     addu(reg[rs], reg[rt], reg[rd]);
@@ -69,22 +71,22 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc){
     sltu(reg[rs], reg[rt], reg[rd]);
   }
   else if (function == 000000){
-    sll(reg[rt], reg[rd], shift);
+    sll(reg[rt], reg[rd], shamt);
   }
   else if (function == 000010){
-    srl(reg[rt], reg[rd], shift);
+    srl(reg[rt], reg[rd], shamt);
   }
   else if (function == 000011){
     sra(reg[rs], reg[rt], reg[rd]);
   }
   else if (function == 100010){
-    sub(reg[rs], reg[rt], reg[rd]);
+    if(sub(reg[rs], reg[rt], reg[rd])){
+      std::cerr << "Overflow" << std::endl;
+    }
   }
   else if (function == 100011){
     subu(reg[rs], reg[rt], reg[rd]);
   }
-
-
 }
 
 
@@ -108,23 +110,49 @@ void and(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs & rt;
 }
 
-//div
-
+void div(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){
+  if(rt!=0){
+    lo = signed(rs) / signed(rt);
+    hi = signed(rs) % signed(rt);
+  }
+}
 void jr(const uint32_t& rs, uint32_t& pc){
   pc = rs;
 }
 
-//mfhi
+void mfhi(const uint32_t& hi, uint32_t& rd){
+  rd = hi;
+}
 
-//mflo
+void mflo(const uint32_t& lo, uint32_t& rd){
+  rd = lo;
+}
 
-//mthi
+void mthi(const uint32_t& rs, uint32_t& hi){
+  hi = rs;
+}
 
-//mtlo
+void mtlo(const uint32_t& rs, uint32_t& lo){
+  lo = rs;
+}
 
 //mult
 
 //multu
+
+void or(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
+
+  int rs_lo = signed(rs) & 0xFFFF;
+  int rt_lo = signed(rt) & 0xFFFF;
+  int rs_hi = (signed(rs) >> 16) & 0xFFFF;
+  int rt_hi = (signed(rt) >> 16) & 0xFFFF;
+
+  lo = rs_lo * rt_lo;
+  hi = rs_hi * rt_hi;
+
+  int tmp = rs_hi*rt_lo + rs_lo*rt*hi;
+
+}
 
 void or(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs | rd;
@@ -154,18 +182,18 @@ void sltu(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
     }
 }
 
-void sll(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //need to double check regarding sign extensions.
-  rd = rt << shift;
+void sll(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to double check regarding sign extensions.
+  rd = rt << shamt;
 }
 
-void srl(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //
-  rd = rt >> shift;
+void srl(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //
+  rd = rt >> shamt;
 }
 
-void sra(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //need to check if loop is correct
+void sra(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to check if loop is correct
   int tmp = rt & 0x80000000;
-  rd = rt >> shift;
-  for (int i = shift; i > -1; i--){ //loop used to copy first bit to empty bits after shift
+  rd = rt >> shamt;
+  for (int i = shamt; i > -1; i--){ //loop used to copy first bit to empty bits after shift
     rd = rd + tmp >> i;
   }
 }
