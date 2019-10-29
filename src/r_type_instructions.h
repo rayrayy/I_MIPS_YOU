@@ -1,4 +1,5 @@
 #include <climits>
+#define MSB 0x80000000
 
 char type_decoder(uint32_t inst){
 
@@ -92,8 +93,10 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
 
 bool add(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
   bool overflow = 0;
-  rd = signed(rs) + signed(rt);
-  if (rd < rs || rd < rt){
+  rd = rs + rt;
+
+  if ((((rs & MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
+|| (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
     overflow = 1;
     return overflow;
   }
@@ -140,7 +143,7 @@ void mtlo(const uint32_t& rs, uint32_t& lo){
 
 //multu
 
-void or(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
+void mult(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
 
   int rs_lo = signed(rs) & 0xFFFF;
   int rt_lo = signed(rt) & 0xFFFF;
