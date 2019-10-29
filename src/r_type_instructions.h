@@ -44,9 +44,46 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc){
 
   short function = ins & 0b111111; //extracting function code
 
-  if (function == 0b1000000){
+  if (function == 0b100000){
     add(reg[rs], reg[rt], reg[rd]);
   }
+  else if (function == 0b100001){
+    addu(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 0b100100){
+    and(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 0b001000){
+    jr(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 0b100101){
+    or(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 0b100110){
+    xor(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 101010){
+    slt(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 101011){
+    sltu(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 000000){
+    sll(reg[rt], reg[rd], shift);
+  }
+  else if (function == 000010){
+    srl(reg[rt], reg[rd], shift);
+  }
+  else if (function == 000011){
+    sra(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 100010){
+    sub(reg[rs], reg[rt], reg[rd]);
+  }
+  else if (function == 100011){
+    subu(reg[rs], reg[rt], reg[rd]);
+  }
+
 
 }
 
@@ -121,7 +158,7 @@ void sll(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //need to doub
   rd = rt << shift;
 }
 
-void slr(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //
+void srl(const uint32_t& rt, uint32_t&rd, const uint32_t& shift){ //
   rd = rt >> shift;
 }
 
