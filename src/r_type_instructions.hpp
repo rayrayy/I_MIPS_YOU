@@ -26,7 +26,7 @@ void SLTU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
 void SLL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt);
 void SRL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt);
 void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt);
-bool SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
+void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
 void SUBU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
 
 #endif

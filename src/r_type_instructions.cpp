@@ -220,16 +220,12 @@ void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to chec
   }
 }
 
-bool SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
-  bool overflow = 0;
+void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
   rd = SIGNED(rs) - SIGNED(rt);
   if (rd < rs || rd < rt){
-    overflow = 1;
-    return overflow;
+    exit(-10);
   }
-  else{
-    return overflow;
-  }
+
 }
 
 void SUBU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
