@@ -1,4 +1,5 @@
 #include <iostream>
+#include <climits>
 
 #include "r_type_instructions.hpp"
 using namespace std;
@@ -7,13 +8,29 @@ using namespace std;
 
 int main(){
 
-  uint32_t x = 0X80000000;
-  uint32_t y = 0X80000000;
-  uint32_t z = 0X00000002;
+  vector<uint32_t> reg;
+  reg.resize(32);
 
-  ADD(x,y,z);
+  reg[0] = 1;
+  reg[1] = 0;
 
-  cerr << z << endl;
+  // std::cout << SIGNED(reg[0]) + SIGNED(reg[1]) << std::endl;
+
+
+  uint32_t hi;
+  uint32_t lo;
+  uint32_t pc;
+
+
+  uint32_t instruction = 0b00000000000000010001000000100000;
+  char type = type_decoder(instruction);
+
+  if (type=='r'){
+    r_type(instruction, reg, pc, hi, lo);
+  }
+
+
+  std::cout << reg[2];
 
 
   // if (x <= INT_MAX){
@@ -34,7 +51,7 @@ char type_decoder(uint32_t inst){
   uint32_t jal = 0x03;
 
   inst = inst >> 26;
-  if (inst == 0){
+  if (inst == r){
     return 'r';
   }
   else if (inst == j || inst == jal){
@@ -46,14 +63,8 @@ char type_decoder(uint32_t inst){
 }
 
 int SIGNED(uint32_t val){
-  return 0;
-  // if (val <= INT_MAX){
-  //       return static_cast<int>(x);
-  // }
-  //
-  // if (val >= INT_MIN){
-  //   return static_cast<int>(x - INT_MIN) + INT_MIN;
-  // }
+  int twos_complement = -(~val+1);
+  return twos_complement;
 }
 
 void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint32_t& hi, uint32_t& lo){
@@ -90,42 +101,42 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   else if (function == 0b100110){
     XOR(reg[rs], reg[rt], reg[rd]);
   }
-  else if (function == 101010){
+  else if (function == 0b101010){
     SLT(reg[rs], reg[rt], reg[rd]);
   }
-  else if (function == 101011){
+  else if (function == 0b101011){
     SLTU(reg[rs], reg[rt], reg[rd]);
   }
-  else if (function == 000000){
+  else if (function == 0b000000){
     SLL(reg[rt], reg[rd], shamt);
   }
-  else if (function == 000010){
+  else if (function == 0b000010){
     SRL(reg[rt], reg[rd], shamt);
   }
-  else if (function == 000011){
+  else if (function == 0b000011){
     SRA(reg[rs], reg[rt], reg[rd]);
   }
-  else if (function == 100010){
+  else if (function == 0b100010){
     SUB(reg[rs], reg[rt], reg[rd]);
   }
-  else if (function == 100011){
+  else if (function == 0b100011){
     SUBU(reg[rs], reg[rt], reg[rd]);
   }
 }
 
 
-void ADD(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
-  rd = rs + rt;
+void ADD(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
+  rd = SIGNED(rs) + SIGNED(rt);
 
   if ((((rs & MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
   || (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
-  exit(-10);
+   exit(-10); //need to check on this -- currently not giving an exit message
   }
 
 }
 
 void ADDU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
-  rd = rs + rt;
+  rd = rs & 0x7FFFFFFF + rt & 0x7FFFFFFF;
 }
 
 void AND(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
@@ -172,7 +183,7 @@ void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ /
   lo = rs_lo * rt_lo;
   hi = rs_hi * rt_hi;
 
-  int tmp = rs_hi*rt_lo + rs_lo*rt*hi;
+
 
 }
 
@@ -216,7 +227,7 @@ void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to chec
   int tmp = rt & 0x80000000;
   rd = rt >> shamt;
   for (int i = shamt; i > -1; i--){ //loop used to copy first bit to empty bits after shift
-    rd = rd + tmp >> i;
+    rd = (rd + tmp) >> i;
   }
 }
 

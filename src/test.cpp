@@ -2,6 +2,7 @@
 #include <cmath>
 #include <climits>
 #include "r_type_instructions.hpp"
+
 using namespace std;
 
 int main(){
