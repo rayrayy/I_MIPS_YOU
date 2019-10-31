@@ -11,15 +11,15 @@ int main(){
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 0xFFFFFFFF;
-  reg[1] = 0xFFFFFFFF;
+  reg[0] = 0x8FFFFFFF;
+  reg[1] = 0x80000000;
 
-  // std::cout << SIGNED(reg[0]) + SIGNED(reg[1]) << std::endl;
+   std::cout << SIGNED(reg[0]) + SIGNED(reg[1]) << std::endl;
 
 
-  uint32_t hi;
-  uint32_t lo;
-  uint32_t pc;
+  uint32_t hi = 0;
+  uint32_t lo = 0;
+  uint32_t pc = 0;
 
 
   uint32_t instruction = 0b00000000000000010001000000100000;
@@ -30,7 +30,7 @@ int main(){
   }
 
 
-  std::cout << std::hex <<reg[2]; //std::hex prints in hex :)
+  std::cout << signed(reg[2]) ; //std::hex prints in hex :)
 
 
 }
@@ -85,7 +85,19 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
     AND(reg[rs], reg[rt], reg[rd]);
   }
   else if (function == 0b001000){
-    JR(reg[rs], reg[rt]);
+    JR(reg[rs], pc);
+  }
+  else if (function == 0b010000){
+    MFHI(hi, reg[rd]);
+  }
+  else if (function == 0b010010){
+    MFHI(lo, reg[rd]);
+  }
+  else if (function == 0b010001){
+    MTHI(reg[rs], hi);
+  }
+  else if (function == 0b010011){
+    MTLO(reg[rs], lo);
   }
   else if (function == 0b100101){
     OR(reg[rs], reg[rt], reg[rd]);
@@ -120,46 +132,51 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
 void ADD(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = SIGNED(rs) + SIGNED(rt);
   //
+  // if((((rs >> 31) == 1) && ((rt >> 31) == 1) && ((rd >> 31) == 0))
+  // || (((rs >> 31) == 0) && ((rt >> 31) == 0) && ((rd >> 31) == 1))){
   if((((rs & MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
   || (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
-   exit(-10); //need to check on this -- currently not giving an exit message
+   give_error(-10); //need to check on this -- currently not giving an exit message
   }
 
-}
+} // tested
 
 void ADDU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
-  rd = rs & 0x7FFFFFFF + rt & 0x7FFFFFFF;
-}
+  // rd = rs & 0x7FFFFFFF + rt & 0x7FFFFFFF;
+  rd = rs + rt;
+} // tested
 
 void AND(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs & rt;
-}
+} // tested
 
-void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){
+void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //incomplete - will finish later
   if(rt!=0){
     lo = SIGNED(rs) / SIGNED(rt);
     hi = SIGNED(rs) % SIGNED(rt);
   }
 }
+
 void JR(const uint32_t& rs, uint32_t& pc){
   pc = rs;
-}
+} // tested
 
 void MFHI(const uint32_t& hi, uint32_t& rd){
   rd = hi;
-}
+} // tested
 
 void MFLO(const uint32_t& lo, uint32_t& rd){
   rd = lo;
-}
+} // tested
 
 void MTHI(const uint32_t& rs, uint32_t& hi){
   hi = rs;
-}
+
+} // tested
 
 void MTLO(const uint32_t& rs, uint32_t& lo){
   lo = rs;
-}
+} // tested
 
 //mult
 
@@ -181,11 +198,11 @@ void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ /
 
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs | rd;
-}
+} // tested
 
 void XOR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
-  rd = rs ^ rd;
-}
+  rd = rs ^ rt;
+} // tested
 
 void SLT(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
 
@@ -195,7 +212,7 @@ void SLT(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   else{
     rd = 0;
   }
-}
+} // tested
 
 void SLTU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
     if (rs < rt){
@@ -205,7 +222,7 @@ void SLTU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
     else{
       rd = 0;
     }
-}
+} //tested
 
 void SLL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to double check regarding sign extensions.
   rd = rt << shamt;
@@ -225,12 +242,19 @@ void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to chec
 
 void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
   rd = SIGNED(rs) - SIGNED(rt);
-  if (rd < rs || rd < rt){
-    exit(-10);
-  }
+  std::cout << SIGNED(rs) << "-" << SIGNED(rt) << "=";
+ //  if((((rs >> MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
+ //  || (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
+ //   exit(-10);
+ // }
 
 }
 
 void SUBU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs - rt;
+}
+
+void give_error(int error_code){
+  std::cerr << error_code;
+  exit(0);
 }

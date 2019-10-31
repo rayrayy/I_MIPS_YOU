@@ -7,13 +7,13 @@ using namespace std;
 
 int main(){
 
-  uint32_t x = 0XFFFFFFFF;
-  uint32_t y = 0X00000002;
-  uint32_t z = 0X00000002;
+  string ins = "11111111111111101111111111111111";
 
-  add(x,y,z);
+  
 
-  cout << z;
+  uint32_t inst = stoi(ins);
+
+  cout << std::hex << inst;
 
 
   // if (x <= INT_MAX){
