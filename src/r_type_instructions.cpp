@@ -11,8 +11,8 @@ int main(){
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 1;
-  reg[1] = 0;
+  reg[0] = 0xFFFFFFFF;
+  reg[1] = 0xFFFFFFFF;
 
   // std::cout << SIGNED(reg[0]) + SIGNED(reg[1]) << std::endl;
 
@@ -30,16 +30,8 @@ int main(){
   }
 
 
-  std::cout << reg[2];
+  std::cout << std::hex <<reg[2]; //std::hex prints in hex :)
 
-
-  // if (x <= INT_MAX){
-  //     cout << static_cast<int>(x);
-  // }
-  //
-  // if (x >= INT_MIN){
-  //     cout << static_cast<int>(x - INT_MIN) + INT_MIN;
-  // }
 
 }
 
@@ -127,8 +119,8 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
 
 void ADD(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = SIGNED(rs) + SIGNED(rt);
-
-  if ((((rs & MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
+  //
+  if((((rs & MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
   || (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
    exit(-10); //need to check on this -- currently not giving an exit message
   }
