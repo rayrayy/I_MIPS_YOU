@@ -11,10 +11,10 @@ int main(){
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 0x8FFFFFFF;
-  reg[1] = 0x80000000;
+  reg[0] = 1;
+  reg[1] = 2;
 
-   std::cout << SIGNED(reg[0]) + SIGNED(reg[1]) << std::endl;
+  std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
 
 
   uint32_t hi = 0;
@@ -22,7 +22,7 @@ int main(){
   uint32_t pc = 0;
 
 
-  uint32_t instruction = 0b00000000000000010001000000100000;
+  uint32_t instruction = 0b0000000000000010000000000011000;
   char type = type_decoder(instruction);
 
   if (type=='r'){
@@ -30,7 +30,7 @@ int main(){
   }
 
 
-  std::cout << signed(reg[2]) ; //std::hex prints in hex :)
+  std::cout << std::hex << reg[1] ; //std::hex prints in hex :)
 
 
 }
@@ -142,7 +142,6 @@ void ADD(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
 } // tested
 
 void ADDU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
-  // rd = rs & 0x7FFFFFFF + rt & 0x7FFFFFFF;
   rd = rs + rt;
 } // tested
 
@@ -184,16 +183,22 @@ void MTLO(const uint32_t& rs, uint32_t& lo){
 
 void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
 
-  int rs_lo = SIGNED(rs) & 0xFFFF;
-  int rt_lo = SIGNED(rt) & 0xFFFF;
-  int rs_hi = (SIGNED(rs) >> 16) & 0xFFFF;
-  int rt_hi = (SIGNED(rt) >> 16) & 0xFFFF;
+  // int rs_lo = SIGNED(rs) & 0xFFFF;
+  // int rt_lo = SIGNED(rt) & 0xFFFF;
+  // int rs_hi = (SIGNED(rs) >> 16) & 0xFFFF;
+  // int rt_hi = (SIGNED(rt) >> 16) & 0xFFFF;
+  //
+  //
+  //
+  // lo = rs_lo * rt_lo;
+  // hi = rs_hi * rt_hi;
 
-  lo = rs_lo * rt_lo;
-  hi = rs_hi * rt_hi;
+  long long product = SIGNED(rs) * SIGNED(rt);
 
+  product = -(~product+1); //since SIGNED() is only for 32 bits
 
-
+  lo = product & 0xFFFFFFFF;
+  hi = product >> 32;
 }
 
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
@@ -224,13 +229,13 @@ void SLTU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
     }
 } //tested
 
-void SLL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to double check regarding sign extensions.
+void SLL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt << shamt;
-}
+} // tested
 
-void SRL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //
+void SRL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt >> shamt;
-}
+} // tested
 
 void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to check if loop is correct
   int tmp = rt & 0x80000000;
@@ -238,15 +243,14 @@ void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to chec
   for (int i = shamt; i > -1; i--){ //loop used to copy first bit to empty bits after shift
     rd = (rd + tmp) >> i;
   }
-}
+}  // NOT WORKING -- did you make this? I dont recall but if it was you probably best if you finish it?
 
-void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ //INCORRECT OVERFLOW CALCULATIONS - lets think of a way to calculate overflow first!
+void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ // test
   rd = SIGNED(rs) - SIGNED(rt);
-  std::cout << SIGNED(rs) << "-" << SIGNED(rt) << "=";
- //  if((((rs >> MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
- //  || (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
- //   exit(-10);
- // }
+  if((((rs & MSB) == MSB) && ((rt & MSB) == 0) && ((rd & MSB) == 0))
+  || (((rs & MSB) == 0) && ((rt & MSB) == MSB) && ((rd & MSB) == MSB))){
+   give_error(-10);
+ }
 
 }
 
