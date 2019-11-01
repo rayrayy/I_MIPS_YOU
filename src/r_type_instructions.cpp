@@ -59,6 +59,16 @@ int SIGNED(uint32_t val){
   return twos_complement;
 }
 
+int addition_overflow(const int& a, const int& b, const int& c){
+  if((((a & MSB) == MSB) && ((b & MSB) == MSB) && ((c & MSB) == 0)) || (((a & MSB) == 0) && ((b & MSB) == 0) && ((c & MSB) == MSB))){
+    int overflow = 1;
+  }
+  else{
+    int overflow = 0;
+  }
+  return overflow;
+}
+
 void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint32_t& hi, uint32_t& lo){
 
   short rs = inst >> 21; // extracting register source
@@ -134,8 +144,7 @@ void ADD(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   //
   // if((((rs >> 31) == 1) && ((rt >> 31) == 1) && ((rd >> 31) == 0))
   // || (((rs >> 31) == 0) && ((rt >> 31) == 0) && ((rd >> 31) == 1))){
-  if((((rs & MSB) == MSB) && ((rt & MSB) == MSB) && ((rd & MSB) == 0))
-  || (((rs & MSB) == 0) && ((rt & MSB) == 0) && ((rd & MSB) == MSB))){
+  if(addition_overflow(SIGNED(rs), SIGNED(rt), rd)){
    give_error(-10); //need to check on this -- currently not giving an exit message
   }
 
@@ -177,9 +186,9 @@ void MTLO(const uint32_t& rs, uint32_t& lo){
   lo = rs;
 } // tested
 
-//mult
 
-//multu
+
+
 
 void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
 
@@ -200,6 +209,8 @@ void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ /
   lo = product & 0xFFFFFFFF;
   hi = product >> 32;
 }
+
+//multu
 
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs | rd;

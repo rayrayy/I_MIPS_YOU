@@ -7,6 +7,7 @@
 
 void give_error(int error_code);
 char type_decoder(uint32_t inst);
+int addition_overflow(const int& a, const int& b, const int& c);
 int SIGNED(uint32_t val);
 void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint32_t& hi, uint32_t& lo);
 
