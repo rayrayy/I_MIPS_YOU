@@ -8,13 +8,17 @@ using namespace std;
 
 int main(){
 
-  uint32_t rs = -3;
-  uint32_t rt = 2;
+  uint32_t rs = 0x7fffffff;
+  uint32_t rt = 0x80000000;
+
+  int64_t hilo = (int64_t)(int32_t)rs*(int64_t)(int32_t)rt;
+
+  uint32_t lo = hilo;
+  uint32_t hi = hilo >> 32;
+  std::cerr << hex << hi <<  " "<< hex << lo << std::endl;
 
 
-
-
-  int b = SIGNED(rs) & 0xFFFF;
+  /*int b = SIGNED(rs) & 0xFFFF;
   int d = SIGNED(rt) & 0xFFFF;
   int a = (SIGNED(rs) >> 16) & 0xFFFF;
   int c = (SIGNED(rt) >> 16) & 0xFFFF;
@@ -39,7 +43,7 @@ int main(){
 
   cout << hi << lo;
 
-
+*/
 
 
 
