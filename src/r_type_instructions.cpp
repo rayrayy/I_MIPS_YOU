@@ -11,10 +11,9 @@ int main(){
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 1;
-  reg[1] = 2;
+  reg[0] = -3;
+  reg[1] = 1;
 
-  std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
 
 
   uint32_t hi = 0;
@@ -22,7 +21,7 @@ int main(){
   uint32_t pc = 0;
 
 
-  uint32_t instruction = 0b0000000000000010000000000011000;
+  uint32_t instruction = 0b0000000000000010000000000011010;
   char type = type_decoder(instruction);
 
   if (type=='r'){
@@ -30,7 +29,9 @@ int main(){
   }
 
 
-  std::cout << std::hex << reg[1] ; //std::hex prints in hex :)
+  std::cout << std::hex << lo << "..." ; //std::hex prints in hex :)
+  std::cout << std::hex << hi ; //std::hex prints in hex :)
+
 
 
 }
@@ -60,11 +61,9 @@ int SIGNED(uint32_t val){
 }
 
 int addition_overflow(const int& a, const int& b, const int& c){
+  int overflow = 0;
   if((((a & MSB) == MSB) && ((b & MSB) == MSB) && ((c & MSB) == 0)) || (((a & MSB) == 0) && ((b & MSB) == 0) && ((c & MSB) == MSB))){
-    int overflow = 1;
-  }
-  else{
-    int overflow = 0;
+    overflow = 1;
   }
   return overflow;
 }
@@ -94,6 +93,9 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   else if (function == 0b100100){
     AND(reg[rs], reg[rt], reg[rd]);
   }
+  else if (function == 0b011010){
+    DIV(reg[rs], reg[rt], hi, lo);
+  }
   else if (function == 0b001000){
     JR(reg[rs], pc);
   }
@@ -108,6 +110,12 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   }
   else if (function == 0b010011){
     MTLO(reg[rs], lo);
+  }
+  else if (function == 0b011000){
+    MULT(reg[rs], reg[rt], hi, lo);
+  }
+  else if (function == 0b011001){
+    MULT(reg[rs], reg[rt], hi, lo);
   }
   else if (function == 0b100101){
     OR(reg[rs], reg[rt], reg[rd]);
@@ -158,12 +166,12 @@ void AND(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs & rt;
 } // tested
 
-void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //incomplete - will finish later
+void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){
   if(rt!=0){
     lo = SIGNED(rs) / SIGNED(rt);
     hi = SIGNED(rs) % SIGNED(rt);
   }
-}
+} //tested
 
 void JR(const uint32_t& rs, uint32_t& pc){
   pc = rs;
@@ -187,30 +195,21 @@ void MTLO(const uint32_t& rs, uint32_t& lo){
 } // tested
 
 
+void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){
+  int64_t hilo = (int64_t)(int32_t)rs*(int64_t)(int32_t)rt;
 
+  lo = hilo;
+  hi = hilo >> 32;
 
+} //tested
 
-void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
+void MULTU(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){
+  uint64_t hilo = (uint64_t)(uint32_t)rs*(uint64_t)(uint32_t)rt;
 
-  // int rs_lo = SIGNED(rs) & 0xFFFF;
-  // int rt_lo = SIGNED(rt) & 0xFFFF;
-  // int rs_hi = (SIGNED(rs) >> 16) & 0xFFFF;
-  // int rt_hi = (SIGNED(rt) >> 16) & 0xFFFF;
-  //
-  //
-  //
-  // lo = rs_lo * rt_lo;
-  // hi = rs_hi * rt_hi;
+  lo = hilo;
+  hi = hilo >> 32;
 
-  long long product = SIGNED(rs) * SIGNED(rt);
-
-  product = -(~product+1); //since SIGNED() is only for 32 bits
-
-  lo = product & 0xFFFFFFFF;
-  hi = product >> 32;
-}
-
-//multu
+} //tested but not thoroughly -- but (big, small) x (big, small) all 4 
 
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs | rd;
@@ -256,18 +255,18 @@ void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to chec
   }
 }  // NOT WORKING -- did you make this? I dont recall but if it was you probably best if you finish it?
 
-void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ // test
+void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = SIGNED(rs) - SIGNED(rt);
   if((((rs & MSB) == MSB) && ((rt & MSB) == 0) && ((rd & MSB) == 0))
   || (((rs & MSB) == 0) && ((rt & MSB) == MSB) && ((rd & MSB) == MSB))){
    give_error(-10);
  }
 
-}
+} //tested
 
 void SUBU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs - rt;
-}
+} //tested
 
 void give_error(int error_code){
   std::cerr << "Exited with error code "<<error_code;
