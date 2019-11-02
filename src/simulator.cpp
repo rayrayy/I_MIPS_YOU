@@ -9,6 +9,10 @@
 #define ADDR_DATA_OFFSET 0x20000000
 #define ADDR_DATA_LENGTH 0x4000000
 
+void load_instruction_memory(){
+
+}
+
 
 
 int main(int argc, char *argv[]){
@@ -18,16 +22,15 @@ int main(int argc, char *argv[]){
 
     //Opening the binary file
     std::ifstream binStream(binName, std::ios::in | std::ios::binary | std::ios::ate); //opens binary file for read with get pointer at the end
-    std::streampos binStream_size;
+    std::streampos binStreamSize;
     char *memBlock;
 
     if (binStream.is_open()){
-    binStream_size = binStream.tellg();
-    memBlock = new char[binStream_size];
+    binStreamSize = binStream.tellg();
+    memBlock = new char[binStreamSize];
     binStream.seekg (0, std::ios::beg);
-    binStream.read (memBlock, binStream_size);
+    binStream.read (memBlock, binStreamSize);
     binStream.close();
-    delete[] memBlock;
     }
     else{
       std::cerr << "Unable to open file" << std::endl;
@@ -36,6 +39,19 @@ int main(int argc, char *argv[]){
 
     std::vector<uint32_t> instrMem;
     std::vector<uint32_t> dataMem;
+
+    uint32_t tempInst;
+    for (int j = 0; j < binStreamSize/4; j++){ //
+       tempInst = 0;
+      for (int i = 0; i < 4; i++){
+        tempInst += (unsigned char)memBlock[j*4+3-i] << 8*i;
+      }
+      instrMem.push_back(tempInst);
+    }
+    delete[] memBlock;
+
+    std::cerr << std::hex << instrMem[0] << std::endl;
+    std::cerr << std::hex << instrMem[1] << std::endl;
 
 
     return(0);

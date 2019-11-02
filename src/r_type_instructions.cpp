@@ -270,6 +270,6 @@ void SUBU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
 }
 
 void give_error(int error_code){
-  std::cerr << error_code;
-  exit(0);
+  std::cerr << "Exited with error code "<<error_code;
+  exit(error_code);
 }
