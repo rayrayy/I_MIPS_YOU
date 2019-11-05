@@ -11,10 +11,11 @@ int main(){
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 1;
-  reg[1] = 2;
+  reg[0] = 0xFFFFFFFF;
+  reg[1] = 0xFFFFFFFF;
 
-  std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
+
+  // std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
 
 
   uint32_t hi = 0;
@@ -22,15 +23,15 @@ int main(){
   uint32_t pc = 0;
 
 
-  uint32_t instruction = 0b0000000000000010000000000011000;
+  uint32_t instruction = 0b00000000000000010001000000011001;
   char type = type_decoder(instruction);
 
   if (type=='r'){
     r_type(instruction, reg, pc, hi, lo);
   }
 
-
-  std::cout << std::hex << reg[1] ; //std::hex prints in hex :)
+  std::cout << std::hex << hi ; //std::hex prints in hex :)
+  std::cout << std::hex << lo ; //std::hex prints in hex :)
 
 
 }
@@ -60,11 +61,9 @@ int SIGNED(uint32_t val){
 }
 
 int addition_overflow(const int& a, const int& b, const int& c){
+  int overflow = 0;
   if((((a & MSB) == MSB) && ((b & MSB) == MSB) && ((c & MSB) == 0)) || (((a & MSB) == 0) && ((b & MSB) == 0) && ((c & MSB) == MSB))){
-    int overflow = 1;
-  }
-  else{
-    int overflow = 0;
+    overflow = 1;
   }
   return overflow;
 }
@@ -101,13 +100,19 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
     MFHI(hi, reg[rd]);
   }
   else if (function == 0b010010){
-    MFHI(lo, reg[rd]);
+    MFLO(lo, reg[rd]);
   }
   else if (function == 0b010001){
     MTHI(reg[rs], hi);
   }
   else if (function == 0b010011){
     MTLO(reg[rs], lo);
+  }
+  else if (function == 0b011000){
+    MULT(reg[rs], reg[rt], hi, lo);
+  }
+  else if (function == 0b011001){
+    MULTU(reg[rs], reg[rt], hi, lo);
   }
   else if (function == 0b100101){
     OR(reg[rs], reg[rt], reg[rd]);
@@ -128,7 +133,7 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
     SRL(reg[rt], reg[rd], shamt);
   }
   else if (function == 0b000011){
-    SRA(reg[rs], reg[rt], reg[rd]);
+    SRA(reg[rt], reg[rd], shamt);
   }
   else if (function == 0b100010){
     SUB(reg[rs], reg[rt], reg[rd]);
@@ -186,31 +191,23 @@ void MTLO(const uint32_t& rs, uint32_t& lo){
   lo = rs;
 } // tested
 
-
-
-
-
-void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
-
-  // int rs_lo = SIGNED(rs) & 0xFFFF;
-  // int rt_lo = SIGNED(rt) & 0xFFFF;
-  // int rs_hi = (SIGNED(rs) >> 16) & 0xFFFF;
-  // int rt_hi = (SIGNED(rt) >> 16) & 0xFFFF;
-  //
-  //
-  //
-  // lo = rs_lo * rt_lo;
-  // hi = rs_hi * rt_hi;
+void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ // tested
 
   long long product = SIGNED(rs) * SIGNED(rt);
-
-  product = -(~product+1); //since SIGNED() is only for 32 bits
 
   lo = product & 0xFFFFFFFF;
   hi = product >> 32;
 }
 
-//multu
+void MULTU(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
+
+  uint64_t product = (uint64_t)rs * (uint64_t)rt;
+
+  lo = product & 0xFFFFFFFF;
+  hi = product >> 32;
+
+  cout << hex << product << endl;
+}
 
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs | rd;
@@ -248,13 +245,10 @@ void SRL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt >> shamt;
 } // tested
 
-void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to check if loop is correct
-  int tmp = rt & 0x80000000;
-  rd = rt >> shamt;
-  for (int i = shamt; i > -1; i--){ //loop used to copy first bit to empty bits after shift
-    rd = (rd + tmp) >> i;
-  }
-}  // NOT WORKING -- did you make this? I dont recall but if it was you probably best if you finish it?
+void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
+  //int tmp = rt & 0x80000000;
+  rd = (int)rt >> shamt;
+}  // tested
 
 void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ // test
   rd = SIGNED(rs) - SIGNED(rt);

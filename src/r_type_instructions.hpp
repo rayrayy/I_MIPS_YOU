@@ -21,6 +21,7 @@ void MFLO(const uint32_t& lo, uint32_t& rd);
 void MTHI(const uint32_t& rs, uint32_t& hi);
 void MTLO(const uint32_t& rs, uint32_t& lo);
 void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo);
+void MULTU(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo);
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
 void XOR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
 void SLT(const uint32_t& rs, const uint32_t& rt, uint32_t& rd);
