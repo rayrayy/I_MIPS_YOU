@@ -11,8 +11,8 @@ int main(){
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 0xFFFFFFFF;
-  reg[1] = 0xFFFFFFFF;
+  reg[0] = 11;
+  reg[1] = 0x7FFFFFFF;
 
 
   // std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
@@ -23,16 +23,14 @@ int main(){
   uint32_t pc = 0;
 
 
-  uint32_t instruction = 0b00000000000000010001000000011001;
+  uint32_t instruction = 0b00000000000000010001000000000111;
   char type = type_decoder(instruction);
 
   if (type=='r'){
     r_type(instruction, reg, pc, hi, lo);
   }
 
-  std::cout << std::hex << hi ; //std::hex prints in hex :)
-  std::cout << std::hex << lo ; //std::hex prints in hex :)
-
+  std::cout << hex << reg[2];
 
 }
 
@@ -93,6 +91,12 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   else if (function == 0b100100){
     AND(reg[rs], reg[rt], reg[rd]);
   }
+  else if (function == 0b011010){
+    DIV(reg[rs], reg[rt], hi, lo);
+  }
+  else if (function == 0b011011){
+    DIVU(reg[rs], reg[rt], hi, lo);
+  }
   else if (function == 0b001000){
     JR(reg[rs], pc);
   }
@@ -129,11 +133,20 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   else if (function == 0b000000){
     SLL(reg[rt], reg[rd], shamt);
   }
+  else if (function == 0b000100){
+    SLLV(reg[rs], reg[rt], reg[rd]);
+  }
   else if (function == 0b000010){
     SRL(reg[rt], reg[rd], shamt);
   }
+  else if (function == 0b000110){
+    SRLV(reg[rt], reg[rd], reg[rs]);
+  }
   else if (function == 0b000011){
     SRA(reg[rt], reg[rd], shamt);
+  }
+  else if (function == 0b000111){
+    SRAV(reg[rt], reg[rd], reg[rs]);
   }
   else if (function == 0b100010){
     SUB(reg[rs], reg[rt], reg[rd]);
@@ -163,10 +176,17 @@ void AND(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs & rt;
 } // tested
 
-void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //incomplete - will finish later
+void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //tested
   if(rt!=0){
     lo = SIGNED(rs) / SIGNED(rt);
     hi = SIGNED(rs) % SIGNED(rt);
+  }
+}
+
+void DIVU(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //tested
+  if(rt!=0){
+    lo = rs / rt;
+    hi = rs % rt;
   }
 }
 
@@ -241,13 +261,26 @@ void SLL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt << shamt;
 } // tested
 
+void SLLV(const uint32_t& rs, const uint32_t&rt, uint32_t& rd){
+  rd = rt << (rs & 0x1F);
+} // tested
+
 void SRL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt >> shamt;
+} // tested
+
+void SRLV(const uint32_t& rt, uint32_t&rd, const uint32_t& rs){
+  rd = rt >> (rs & 0x1F);
 } // tested
 
 void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   //int tmp = rt & 0x80000000;
   rd = (int)rt >> shamt;
+}  // tested
+
+void SRAV(const uint32_t& rt, uint32_t&rd, const uint32_t& rs){
+  //int tmp = rt & 0x80000000;
+  rd = (int)rt >> (rs&0x1F);
 }  // tested
 
 void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ // test
