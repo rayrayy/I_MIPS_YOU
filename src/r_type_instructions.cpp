@@ -5,7 +5,7 @@
 using namespace std;
 
 #define MSB 0x80000000
-
+/*
 int main(){
 
   vector<uint32_t> reg;
@@ -34,7 +34,7 @@ int main(){
 
 
 }
-
+*/
 
 char type_decoder(uint32_t inst){
 
@@ -61,12 +61,11 @@ int SIGNED(uint32_t val){
 
 int addition_overflow(const int& a, const int& b, const int& c){
   if((((a & MSB) == MSB) && ((b & MSB) == MSB) && ((c & MSB) == 0)) || (((a & MSB) == 0) && ((b & MSB) == 0) && ((c & MSB) == MSB))){
-    int overflow = 1;
+    return 1;
   }
   else{
-    int overflow = 0;
+    return 0;
   }
-  return overflow;
 }
 
 void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint32_t& hi, uint32_t& lo){
