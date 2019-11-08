@@ -13,8 +13,6 @@
 #define ADDR_DATA_LENGTH 0x4000000
 
 
-
-
 int main(int argc, char *argv[]){
 
     (void)argc; //to stop the warning of not using this argument
@@ -60,10 +58,7 @@ int main(int argc, char *argv[]){
         execute_instruction(instrMem[pc], reg, pc, hi, lo, dataMem);
         pc++;
       }
-
     }
-
-
 }
 
 bool delay_slot(uint32_t instr){
@@ -71,6 +66,7 @@ bool delay_slot(uint32_t instr){
   uint32_t function = instr & 0x3F;
 
   if ((opcode == 0) && (function == 0b1000)) return true;
+  if (opcode == 0b00001) return true;
 
   return false;
 }
@@ -97,7 +93,7 @@ void execute_instruction(const uint32_t& inst, std::vector<uint32_t>& reg, uint3
     give_error(-20);
   }
   else{
-    I_decoder(inst, reg);
+    I_decoder(inst, reg, pc);
   }
 }
 
