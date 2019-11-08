@@ -1,20 +1,26 @@
 #include <iostream>
 #include <climits>
 
-#include "r_type_instructions.hpp"
-using namespace std;
+#include "r_type.hpp"
+#include "simulator.hpp"
+//using namespace std;
 
 #define MSB 0x80000000
+#define ADDR_INSTR_OFFSET 0x10000000
+#define ADDR_INSTR_LENGTH 0x1000000
+
+
 /*
 int main(){
 
   vector<uint32_t> reg;
   reg.resize(32);
 
-  reg[0] = 1;
-  reg[1] = 2;
+  reg[0] = 11;
+  reg[1] = 0x7FFFFFFF;
 
-  std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
+
+  // std::cout << std::hex << reg[1] << std::endl ; //std::hex prints in hex :)
 
 
   uint32_t hi = 0;
@@ -22,16 +28,14 @@ int main(){
   uint32_t pc = 0;
 
 
-  uint32_t instruction = 0b0000000000000010000000000011000;
+  uint32_t instruction = 0b00000000000000010001000000000111;
   char type = type_decoder(instruction);
 
   if (type=='r'){
     r_type(instruction, reg, pc, hi, lo);
   }
 
-
-  std::cout << std::hex << reg[1] ; //std::hex prints in hex :)
-
+  std::cout << hex << reg[2];
 
 }
 */
@@ -63,9 +67,7 @@ int addition_overflow(const int& a, const int& b, const int& c){
   if((((a & MSB) == MSB) && ((b & MSB) == MSB) && ((c & MSB) == 0)) || (((a & MSB) == 0) && ((b & MSB) == 0) && ((c & MSB) == MSB))){
     return 1;
   }
-  else{
-    return 0;
-  }
+  return 0;
 }
 
 void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint32_t& hi, uint32_t& lo){
@@ -93,20 +95,32 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   else if (function == 0b100100){
     AND(reg[rs], reg[rt], reg[rd]);
   }
+  else if (function == 0b011010){
+    DIV(reg[rs], reg[rt], hi, lo);
+  }
+  else if (function == 0b011011){
+    DIVU(reg[rs], reg[rt], hi, lo);
+  }
   else if (function == 0b001000){
-    JR(reg[rs], pc);
+    JR(reg[rs], pc, reg[2] & 0xFF);
   }
   else if (function == 0b010000){
     MFHI(hi, reg[rd]);
   }
   else if (function == 0b010010){
-    MFHI(lo, reg[rd]);
+    MFLO(lo, reg[rd]);
   }
   else if (function == 0b010001){
     MTHI(reg[rs], hi);
   }
   else if (function == 0b010011){
     MTLO(reg[rs], lo);
+  }
+  else if (function == 0b011000){
+    MULT(reg[rs], reg[rt], hi, lo);
+  }
+  else if (function == 0b011001){
+    MULTU(reg[rs], reg[rt], hi, lo);
   }
   else if (function == 0b100101){
     OR(reg[rs], reg[rt], reg[rd]);
@@ -123,11 +137,20 @@ void r_type(const uint32_t& inst, std::vector<uint32_t>& reg, uint32_t& pc, uint
   else if (function == 0b000000){
     SLL(reg[rt], reg[rd], shamt);
   }
+  else if (function == 0b000100){
+    SLLV(reg[rs], reg[rt], reg[rd]);
+  }
   else if (function == 0b000010){
     SRL(reg[rt], reg[rd], shamt);
   }
+  else if (function == 0b000110){
+    SRLV(reg[rt], reg[rd], reg[rs]);
+  }
   else if (function == 0b000011){
-    SRA(reg[rs], reg[rt], reg[rd]);
+    SRA(reg[rt], reg[rd], shamt);
+  }
+  else if (function == 0b000111){
+    SRAV(reg[rt], reg[rd], reg[rs]);
   }
   else if (function == 0b100010){
     SUB(reg[rs], reg[rt], reg[rd]);
@@ -157,15 +180,35 @@ void AND(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs & rt;
 } // tested
 
-void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //incomplete - will finish later
+void DIV(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //tested
   if(rt!=0){
     lo = SIGNED(rs) / SIGNED(rt);
     hi = SIGNED(rs) % SIGNED(rt);
   }
 }
 
-void JR(const uint32_t& rs, uint32_t& pc){
-  pc = rs;
+void DIVU(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //tested
+  if(rt!=0){
+    lo = rs / rt;
+    hi = rs % rt;
+  }
+}
+
+void JR(const uint32_t& rs, uint32_t& pc, uint32_t reg2){
+  if (rs == 0) { //if jump to 0: end of execution
+    std::cerr << "exit by jump to address 0 with exit code " << reg2 << std::endl;
+    std::exit(reg2);
+  }
+  if (rs & 0b11 != 0){ //address not naturally aligned, is this the right error tough?
+    std::cerr << "address not naturally aligned" << std::endl;
+    give_error(-11);
+  }
+  if ((rs < ADDR_INSTR_OFFSET) || (rs >= ADDR_INSTR_OFFSET + ADDR_INSTR_LENGTH)){ //out of range of address space
+    std::cerr << "out of range of instr address space" << std::endl; //or is the range determined by size of the binary?
+    give_error(-11); //right exit code?
+  }
+
+  pc = rs/4;
 } // tested
 
 void MFHI(const uint32_t& hi, uint32_t& rd){
@@ -185,31 +228,22 @@ void MTLO(const uint32_t& rs, uint32_t& lo){
   lo = rs;
 } // tested
 
-
-
-
-
-void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
-
-  // int rs_lo = SIGNED(rs) & 0xFFFF;
-  // int rt_lo = SIGNED(rt) & 0xFFFF;
-  // int rs_hi = (SIGNED(rs) >> 16) & 0xFFFF;
-  // int rt_hi = (SIGNED(rt) >> 16) & 0xFFFF;
-  //
-  //
-  //
-  // lo = rs_lo * rt_lo;
-  // hi = rs_hi * rt_hi;
+void MULT(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ // tested
 
   long long product = SIGNED(rs) * SIGNED(rt);
-
-  product = -(~product+1); //since SIGNED() is only for 32 bits
 
   lo = product & 0xFFFFFFFF;
   hi = product >> 32;
 }
 
-//multu
+void MULTU(const uint32_t& rs, const uint32_t& rt, uint32_t& hi, uint32_t& lo){ //NOT COMPLETE
+
+  uint64_t product = (uint64_t)rs * (uint64_t)rt;
+
+  lo = product & 0xFFFFFFFF;
+  hi = product >> 32;
+
+}
 
 void OR(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs | rd;
@@ -243,17 +277,27 @@ void SLL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt << shamt;
 } // tested
 
+void SLLV(const uint32_t& rs, const uint32_t&rt, uint32_t& rd){
+  rd = rt << (rs & 0x1F);
+} // tested
+
 void SRL(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
   rd = rt >> shamt;
 } // tested
 
-void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){ //need to check if loop is correct
-  int tmp = rt & 0x80000000;
-  rd = rt >> shamt;
-  for (int i = shamt; i > -1; i--){ //loop used to copy first bit to empty bits after shift
-    rd = (rd + tmp) >> i;
-  }
-}  // NOT WORKING -- did you make this? I dont recall but if it was you probably best if you finish it?
+void SRLV(const uint32_t& rt, uint32_t&rd, const uint32_t& rs){
+  rd = rt >> (rs & 0x1F);
+} // tested
+
+void SRA(const uint32_t& rt, uint32_t&rd, const uint32_t& shamt){
+  //int tmp = rt & 0x80000000;
+  rd = (int)rt >> shamt;
+}  // tested
+
+void SRAV(const uint32_t& rt, uint32_t&rd, const uint32_t& rs){
+  //int tmp = rt & 0x80000000;
+  rd = (int)rt >> (rs&0x1F);
+}  // tested
 
 void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ // test
   rd = SIGNED(rs) - SIGNED(rt);
@@ -266,9 +310,4 @@ void SUB(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){ // test
 
 void SUBU(const uint32_t& rs, const uint32_t& rt, uint32_t& rd){
   rd = rs - rt;
-}
-
-void give_error(int error_code){
-  std::cerr << "Exited with error code "<<error_code;
-  exit(error_code);
 }

@@ -34,15 +34,18 @@ MIPS_LDFLAGS = -nostdlib -Wl,-melf32btsmip -march=mips1 -nostartfiles -mno-check
 	$(MIPS_OBJDUMP) -j .text -D $< > $@
 
 # Build simulator
-simulator: simulator.o r_type_instructions.o
+simulator: simulator.o r_type.o i_type.o
 	mkdir -p bin
-	$(CC) $(CPPFLAGS) simulator.o r_type_instructions.o -o bin/mips_simulator
+	$(CC) $(CPPFLAGS) simulator.o r_type.o i_type.o -o bin/mips_simulator
 
-simulator.o: src/simulator.cpp
+simulator.o: src/simulator.cpp src/simulator.hpp
 	g++ -c src/simulator.cpp
 
-r_type_instructions.o: src/r_type_instructions.cpp src/r_type_instructions.hpp
-	g++ -c src/r_type_instructions.cpp
+r_type.o: src/r_type.cpp src/r_type.hpp
+	g++ -c src/r_type.cpp
+
+i_type.o: src/i_type/i_type.cpp src/i_type/i_type.hpp
+	g++ -c src/i_type/i_type.cpp
 
 # Dummy for build simulator to conform to spec
 #simulator: bin/mips_simulator
